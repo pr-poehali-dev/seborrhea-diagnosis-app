@@ -38,7 +38,7 @@ const C = {
   cream:   '#faf6f4',
 };
 
-const HERO = 'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/files/dcb5a2f6-1cec-4bab-8c46-4dc1b30adf2b.jpg';
+const HERO = 'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/bucket/078eb374-ae25-41b5-acea-e6598f8d00cc.JPG';
 const MOODBOARD = 'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/bucket/d885112d-f854-4172-bc9f-18059ed325d6.jpg';
 
 type Screen = 'home' | 'diagnostic' | 'result' | 'catalog' | 'consult' | 'compose' | 'club' | 'reviews' | 'faq';
