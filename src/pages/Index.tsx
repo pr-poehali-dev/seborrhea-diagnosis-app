@@ -1,643 +1,333 @@
-import { useState, useMemo } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Input } from '@/components/ui/input';
-import {
-  products,
-  lines,
-  questions,
-  problemLabels,
-  reviews,
-  faq,
-  consultations,
-  type Problem,
-  type Product,
-} from '@/data/sebo';
 
-const HERO = 'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/files/dcb5a2f6-1cec-4bab-8c46-4dc1b30adf2b.jpg';
+const DOCTOR =
+  'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/files/dbc6b026-9fa1-47a4-a396-f617eb632b69.jpg';
+const APP =
+  'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/files/58427fce-f0e2-4b03-871c-e02cf73ad989.jpg';
+const MOODBOARD =
+  'https://cdn.poehali.dev/projects/59aafcac-bf0d-423d-8f27-b694028f6b8b/bucket/9fd40e37-39d1-44aa-9abb-11e8281b0006.jpg';
 
-type Screen =
-  | 'home'
-  | 'diagnostic'
-  | 'result'
-  | 'catalog'
-  | 'consult'
-  | 'compose'
-  | 'club'
-  | 'reviews'
-  | 'faq';
+const features = [
+  { icon: 'IdCard',        title: 'Карточка пациента',    text: 'Вся история, фотографии и назначения в одном месте.' },
+  { icon: 'Camera',        title: 'Фотофиксация',         text: 'Динамика «до / после» для наглядного контроля лечения.' },
+  { icon: 'TrendingUp',    title: 'Аналитика прогресса',  text: 'Графики, метрики и отчёты по каждому пациенту.' },
+  { icon: 'CalendarCheck', title: 'Расписание приёмов',   text: 'Онлайн-запись, напоминания и подтверждения визитов.' },
+  { icon: 'ClipboardList', title: 'Протоколы процедур',   text: 'Готовые и авторские протоколы для стандартизации.' },
+  { icon: 'ShieldCheck',   title: 'Защита данных',        text: 'Полное соответствие 152-ФЗ и медицинской тайне.' },
+];
 
-const PROMO: Record<string, number> = { SEBO10: 0.1, SEBO20: 0.2, CLUB: 0.15 };
+const testimonials = [
+  {
+    name: 'Елена Карпова',
+    role: 'Трихолог, Москва',
+    text: 'За три месяца работы с приложением количество повторных визитов выросло на 35%. Пациенты видят прогресс — и возвращаются.',
+    initials: 'ЕК',
+  },
+  {
+    name: 'Анна Соколова',
+    role: 'Косметолог, Санкт-Петербург',
+    text: 'Фотофиксация и сравнение «до/после» — это то, чего мне не хватало. Теперь я показываю результат, и доверие пациентов растёт.',
+    initials: 'АС',
+  },
+  {
+    name: 'Марина Волкова',
+    role: 'Эстетическая медицина, Краснодар',
+    text: 'Протоколы и карточки пациентов — экономлю больше часа в день. Приложение стало незаменимой частью моей практики.',
+    initials: 'МВ',
+  },
+];
 
-const Index = () => {
-  const [screen, setScreen] = useState<Screen>('home');
-  const [step, setStep] = useState(0);
-  const [scores, setScores] = useState<Record<Problem, number>>({
-    hairloss: 0,
-    dandruff: 0,
-    oily: 0,
-    dry: 0,
-    volume: 0,
-  });
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [promo, setPromo] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<number>(0);
-  const [openProduct, setOpenProduct] = useState<Product | null>(null);
+const Index = () => (
+  <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
 
-  const cartCount = Object.values(cart).reduce((a, b) => a + b, 0);
-  const subtotal = useMemo(
-    () =>
-      Object.entries(cart).reduce((sum, [id, qty]) => {
-        const p = products.find((x) => x.id === id);
-        return sum + (p ? p.price * qty : 0);
-      }, 0),
-    [cart],
-  );
-  const total = Math.round(subtotal * (1 - appliedPromo));
+    {/* ── Ambient blobs ── */}
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, #edc8c1, transparent 70%)' }} />
+      <div className="absolute top-1/2 -left-32 h-80 w-80 rounded-full opacity-20"
+           style={{ background: 'radial-gradient(circle, #808b6a, transparent 70%)' }} />
+      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full opacity-20"
+           style={{ background: 'radial-gradient(circle, #6a8599, transparent 70%)' }} />
+    </div>
 
-  const addToCart = (id: string) =>
-    setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const changeQty = (id: string, d: number) =>
-    setCart((c) => {
-      const q = (c[id] || 0) + d;
-      const next = { ...c };
-      if (q <= 0) delete next[id];
-      else next[id] = q;
-      return next;
-    });
+    {/* ── Nav ── */}
+    <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-border/50"
+            style={{ background: 'rgba(252,249,248,0.85)' }}>
+      <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2.5">
+          <span className="h-9 w-9 rounded-xl grid place-items-center text-white"
+                style={{ background: '#3f3740' }}>
+            <Icon name="Activity" size={18} />
+          </span>
+          <span className="font-display text-2xl font-bold" style={{ color: '#3f3740' }}>
+            TrichoCare
+          </span>
+        </div>
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <a href="#portal"  className="hover:text-foreground transition-colors">Портал</a>
+          <a href="#features" className="hover:text-foreground transition-colors">Возможности</a>
+          <a href="#voices"  className="hover:text-foreground transition-colors">Отзывы</a>
+        </nav>
+        <Button className="rounded-full px-6 text-sm" style={{ background: '#3f3740', color: '#fff' }}>
+          Получить доступ
+        </Button>
+      </div>
+    </header>
 
-  const topProblem = (Object.entries(scores) as [Problem, number][]).sort(
-    (a, b) => b[1] - a[1],
-  )[0];
-  const recommended = products.filter((p) =>
-    p.problems.includes(topProblem?.[0]),
-  );
+    {/* ── HERO: двухколоночный портал ── */}
+    <section id="portal" className="mx-auto max-w-6xl px-6 pt-16 pb-6">
+      <div className="grid lg:grid-cols-2 gap-10 items-stretch">
 
-  const answer = (problem?: Problem) => {
-    if (problem) setScores((s) => ({ ...s, [problem]: s[problem] + 1 }));
-    if (step + 1 < questions.length) setStep(step + 1);
-    else setScreen('result');
-  };
+        {/* Левая колонка — врач */}
+        <div className="relative rounded-[2.5rem] overflow-hidden min-h-[560px] animate-fade-in">
+          <img
+            src={DOCTOR}
+            alt="Врач-трихолог"
+            className="absolute inset-0 w-full h-full object-cover object-top"
+          />
+          {/* тонкий градиент снизу */}
+          <div className="absolute inset-0"
+               style={{ background: 'linear-gradient(to top, rgba(63,55,64,0.75) 0%, transparent 55%)' }} />
 
-  const startDiagnostic = () => {
-    setStep(0);
-    setScores({ hairloss: 0, dandruff: 0, oily: 0, dry: 0, volume: 0 });
-    setScreen('diagnostic');
-  };
-
-  const applyPromo = () => {
-    const code = promo.trim().toUpperCase();
-    setAppliedPromo(PROMO[code] || 0);
-  };
-
-  const menu: { id: Screen; label: string; icon: string }[] = [
-    { id: 'diagnostic', label: 'Диагностика', icon: 'Stethoscope' },
-    { id: 'compose', label: 'Подбор ухода', icon: 'Sparkles' },
-    { id: 'catalog', label: 'Каталог продукции', icon: 'Package' },
-    { id: 'consult', label: 'Консультация', icon: 'MessageCircleHeart' },
-    { id: 'reviews', label: 'Отзывы', icon: 'Star' },
-    { id: 'faq', label: 'Вопросы и ответы', icon: 'HelpCircle' },
-    { id: 'club', label: 'Клуб SEBO', icon: 'Crown' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-md min-h-screen bg-background relative pb-10">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-5 py-4 bg-background/80 backdrop-blur-md border-b border-border">
-          <button
-            onClick={() => setScreen('home')}
-            className="font-display text-2xl font-bold tracking-tight text-primary"
-          >
-            Seboradin
-          </button>
-          <div className="flex items-center gap-3">
-            <button className="h-10 w-10 rounded-full bg-secondary grid place-items-center text-secondary-foreground">
-              <Icon name="User" size={20} />
-            </button>
-            <CartSheet
-              cart={cart}
-              cartCount={cartCount}
-              subtotal={subtotal}
-              total={total}
-              promo={promo}
-              setPromo={setPromo}
-              applyPromo={applyPromo}
-              appliedPromo={appliedPromo}
-              changeQty={changeQty}
-            />
+          {/* Бейдж-экспертиза */}
+          <div className="absolute top-6 left-6 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold backdrop-blur-md"
+               style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+            <Icon name="Award" size={14} />
+            Для специалистов эстетической медицины
           </div>
-        </header>
 
-        <main className="px-5">
-          {screen === 'home' && (
-            <div className="animate-fade-in">
-              <section className="relative mt-4 rounded-[2rem] overflow-hidden">
-                <img src={HERO} alt="Кожа головы" className="w-full h-64 object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-                <div className="absolute bottom-5 left-5 right-5">
-                  <p className="text-sm font-medium text-primary uppercase tracking-widest">
-                    Трихология
-                  </p>
-                  <h1 className="font-display text-4xl font-bold leading-tight text-foreground">
-                    Здоровье ваших
-                    <br />
-                    волос и кожи головы
-                  </h1>
-                </div>
-              </section>
-
-              <Button
-                onClick={startDiagnostic}
-                className="w-full mt-5 h-14 rounded-full text-base font-semibold shadow-lg shadow-primary/20"
-              >
-                <Icon name="Stethoscope" size={20} className="mr-2" />
-                Пройти диагностику
+          {/* Текст поверх фото */}
+          <div className="absolute bottom-8 left-8 right-8">
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2"
+               style={{ color: '#edc8c1' }}>
+              Цифровой ассистент трихолога
+            </p>
+            <h1 className="font-display text-5xl font-bold leading-[1.05] text-white">
+              Экспертность
+              <br />в каждом приёме
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.80)' }}>
+              Структурируйте диагностику, консультации<br />и ведение пациентов в одном приложении.
+            </p>
+            <div className="flex gap-3 mt-5">
+              <Button className="rounded-full h-12 px-7 font-semibold text-sm"
+                      style={{ background: '#edc8c1', color: '#3f3740' }}>
+                Попробовать бесплатно
               </Button>
-
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                {menu.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => {
-                      if (m.id === 'diagnostic') startDiagnostic();
-                      else setScreen(m.id);
-                    }}
-                    className="flex flex-col items-start gap-3 rounded-3xl bg-card border border-border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md active:scale-95"
-                  >
-                    <span className="h-11 w-11 rounded-2xl bg-secondary grid place-items-center text-primary">
-                      <Icon name={m.icon} size={22} />
-                    </span>
-                    <span className="font-medium text-sm leading-tight text-card-foreground">
-                      {m.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-6 rounded-3xl bg-primary p-5 text-primary-foreground">
-                <p className="font-display text-2xl font-bold">Состав без секретов</p>
-                <p className="text-sm opacity-90 mt-1">
-                  Каждый продукт — это прозрачный разбор активных компонентов.
-                </p>
-                <Button
-                  variant="secondary"
-                  onClick={() => setScreen('catalog')}
-                  className="mt-4 rounded-full"
-                >
-                  Смотреть составы
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {screen === 'diagnostic' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-                <span>
-                  Вопрос {step + 1} из {questions.length}
-                </span>
-                <span>{Math.round(((step + 1) / questions.length) * 100)}%</span>
-              </div>
-              <div className="mt-2 h-2 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${((step + 1) / questions.length) * 100}%` }}
-                />
-              </div>
-              <h2 className="font-display text-3xl font-semibold mt-6 leading-tight text-foreground">
-                {questions[step].text}
-              </h2>
-              <div className="flex flex-col gap-3 mt-6">
-                {questions[step].options.map((o, i) => (
-                  <button
-                    key={i}
-                    onClick={() => answer(o.problem)}
-                    className="w-full rounded-2xl border-2 border-border bg-card p-4 text-left font-medium text-card-foreground transition hover:border-primary hover:bg-secondary active:scale-95"
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {screen === 'result' && (
-            <div className="animate-scale-in pt-6">
-              <div className="rounded-3xl bg-accent/15 border border-accent/30 p-6 text-center">
-                <span className="text-4xl">🎯</span>
-                <p className="text-sm text-muted-foreground mt-2">Ваша основная проблема</p>
-                <h2 className="font-display text-3xl font-bold text-foreground mt-1">
-                  {problemLabels[topProblem[0]]}
-                </h2>
-              </div>
-              <h3 className="font-display text-2xl font-semibold mt-6 text-foreground">
-                Рекомендованный комплект
-              </h3>
-              <div className="flex flex-col gap-3 mt-3">
-                {recommended.map((p) => (
-                  <ProductRow key={p.id} p={p} onAdd={addToCart} onOpen={setOpenProduct} />
-                ))}
-              </div>
-              <Button
-                onClick={() => {
-                  recommended.forEach((p) => addToCart(p.id));
-                  setScreen('catalog');
-                }}
-                className="w-full mt-4 h-13 rounded-full h-14 font-semibold"
-              >
-                Добавить весь комплект в корзину
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setScreen('catalog')}
-                className="w-full mt-2 rounded-full"
-              >
-                Изменить ассортимент вручную
+              <Button variant="ghost" className="rounded-full h-12 px-6 text-sm text-white border border-white/30 hover:bg-white/10">
+                <Icon name="Play" size={16} className="mr-2" />
+                Демо
               </Button>
             </div>
-          )}
+          </div>
+        </div>
 
-          {screen === 'catalog' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <h2 className="font-display text-3xl font-bold mt-3 text-foreground">
-                Каталог продукции
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Линии продуктов и полный ассортимент
-              </p>
-              {lines.map((line) => (
-                <div key={line.id} className="mb-6">
-                  <div
-                    className="rounded-3xl p-5 text-white mb-3"
-                    style={{ backgroundColor: `hsl(${line.color})` }}
-                  >
-                    <span className="text-2xl">{line.emoji}</span>
-                    <p className="font-display text-2xl font-bold mt-1">{line.name}</p>
-                    <p className="text-sm opacity-90 mt-1">{line.description}</p>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {products
-                      .filter((p) => p.line === line.name)
-                      .map((p) => (
-                        <ProductRow
-                          key={p.id}
-                          p={p}
-                          onAdd={addToCart}
-                          onOpen={setOpenProduct}
-                        />
-                      ))}
-                  </div>
-                </div>
+        {/* Правая колонка — интерфейс приложения */}
+        <div className="flex flex-col gap-5 animate-scale-in">
+
+          {/* Главный скриншот */}
+          <div className="relative rounded-[2rem] overflow-hidden flex-1">
+            <img src={APP} alt="Интерфейс TrichoCare"
+                 className="w-full h-full object-cover min-h-[300px]" />
+            <div className="absolute inset-0 rounded-[2rem]"
+                 style={{ boxShadow: 'inset 0 0 0 1px rgba(63,55,64,0.10)' }} />
+          </div>
+
+          {/* Три мини-карточки метрик */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: 'Users',     val: '2 200+', sub: 'специалистов' },
+              { icon: 'Clock',     val: '−40%',   sub: 'времени на карты' },
+              { icon: 'RefreshCw', val: '98%',    sub: 'возврат пациентов' },
+            ].map(m => (
+              <div key={m.val}
+                   className="rounded-2xl p-4 text-center border border-border bg-card">
+                <Icon name={m.icon} size={18} className="mx-auto mb-1 text-muted-foreground" />
+                <p className="font-display text-2xl font-bold" style={{ color: '#3f3740' }}>{m.val}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{m.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Доверие-плашки */}
+          <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-4">
+            <div className="h-10 w-10 shrink-0 rounded-xl grid place-items-center"
+                 style={{ background: '#edc8c1' }}>
+              <Icon name="ShieldCheck" size={20} style={{ color: '#3f3740' }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Данные под защитой</p>
+              <p className="text-xs text-muted-foreground">152-ФЗ · Шифрование · Медицинская тайна</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Полоска доверия ── */}
+    <div className="border-y border-border/60 mt-8" style={{ background: 'rgba(255,255,255,0.6)' }}>
+      <div className="mx-auto max-w-6xl px-6 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-xs font-medium text-muted-foreground uppercase tracking-widest">
+        {[
+          { icon: 'Stethoscope', t: 'Трихология' },
+          { icon: 'Sparkles',    t: 'Косметология' },
+          { icon: 'Heart',       t: 'Эстетическая медицина' },
+          { icon: 'Microscope',  t: 'Дерматология' },
+        ].map(x => (
+          <span key={x.t} className="flex items-center gap-2">
+            <Icon name={x.icon} size={15} style={{ color: '#808b6a' }} />
+            {x.t}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    {/* ── Возможности ── */}
+    <section id="features" className="mx-auto max-w-6xl px-6 py-20">
+      <div className="grid lg:grid-cols-2 gap-14 items-center">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#808b6a' }}>
+            Возможности
+          </p>
+          <h2 className="font-display text-5xl font-bold leading-tight" style={{ color: '#3f3740' }}>
+            Всё для идеального
+            <br />приёма
+          </h2>
+          <p className="mt-4 text-muted-foreground leading-relaxed max-w-sm">
+            Каждый инструмент создан вместе с практикующими врачами —
+            без лишнего, только то, что реально экономит время.
+          </p>
+
+          {/* Цветовая палитра мудборда как декор */}
+          <div className="flex gap-2 mt-8">
+            {['#3f3740','#6a8599','#808b6a','#c5a290','#edc8c1','#ecd8d4'].map(c => (
+              <div key={c} className="h-6 w-6 rounded-full border border-white shadow-sm"
+                   style={{ background: c }} />
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {features.map((f, i) => (
+            <div
+              key={f.title}
+              className="group rounded-3xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <span className="h-12 w-12 rounded-2xl grid place-items-center mb-4 transition-colors duration-300"
+                    style={{ background: '#f5eeec' }}>
+                <Icon name={f.icon} size={22} style={{ color: '#3f3740' }} />
+              </span>
+              <p className="font-semibold text-sm text-foreground">{f.title}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{f.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ── Атмосферная секция с мудбордом ── */}
+    <section className="mx-auto max-w-6xl px-6 pb-16">
+      <div className="relative rounded-[2.5rem] overflow-hidden">
+        <img src={MOODBOARD} alt="Эстетика клиники" className="w-full h-72 object-cover object-top" />
+        <div className="absolute inset-0"
+             style={{ background: 'linear-gradient(to right, rgba(63,55,64,0.82) 0%, rgba(63,55,64,0.3) 60%, transparent 100%)' }} />
+        <div className="absolute inset-0 flex items-center px-12 lg:px-16">
+          <div className="max-w-md text-white">
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#edc8c1' }}>
+              Атмосфера практики
+            </p>
+            <h3 className="font-display text-4xl font-bold leading-tight">
+              Приложение, которое
+              <br />чувствует ваш уровень
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              Дизайн и логика продукта созданы для высоких стандартов
+              эстетической медицины — без компромиссов.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Отзывы ── */}
+    <section id="voices" className="mx-auto max-w-6xl px-6 pb-20">
+      <p className="text-xs font-semibold uppercase tracking-widest text-center mb-2" style={{ color: '#808b6a' }}>
+        Голоса специалистов
+      </p>
+      <h2 className="font-display text-4xl font-bold text-center mb-10" style={{ color: '#3f3740' }}>
+        Врачи о TrichoCare
+      </h2>
+      <div className="grid md:grid-cols-3 gap-5">
+        {testimonials.map(t => (
+          <div key={t.name} className="rounded-3xl border border-border bg-card p-7">
+            <div className="flex gap-1 mb-4">
+              {[...Array(5)].map((_, i) => (
+                <Icon key={i} name="Star" size={14} style={{ color: '#c5a290', fill: '#c5a290' }} />
               ))}
             </div>
-          )}
-
-          {screen === 'consult' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <h2 className="font-display text-3xl font-bold mt-3 text-foreground">
-                Консультация по применению
-              </h2>
-              <div className="flex flex-col gap-3 mt-4">
-                {consultations.map((c, i) => (
-                  <div key={i} className="rounded-3xl bg-card border border-border p-5">
-                    <p className="font-semibold text-card-foreground">{c.title}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{c.text}</p>
-                  </div>
-                ))}
+            <p className="text-sm leading-relaxed text-muted-foreground">«{t.text}»</p>
+            <div className="flex items-center gap-3 mt-5">
+              <div className="h-10 w-10 rounded-full grid place-items-center text-sm font-bold text-white"
+                   style={{ background: '#3f3740' }}>
+                {t.initials}
               </div>
-            </div>
-          )}
-
-          {screen === 'reviews' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <h2 className="font-display text-3xl font-bold mt-3 text-foreground">
-                Отзывы на продукцию
-              </h2>
-              <div className="flex flex-col gap-3 mt-4">
-                {reviews.map((r, i) => (
-                  <div key={i} className="rounded-3xl bg-card border border-border p-5">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-card-foreground">{r.name}</p>
-                      <div className="flex gap-0.5 text-accent">
-                        {Array.from({ length: r.rating }).map((_, j) => (
-                          <Icon key={j} name="Star" size={14} className="fill-current" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2">{r.text}</p>
-                  </div>
-                ))}
+              <div>
+                <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                <p className="text-xs text-muted-foreground">{t.role}</p>
               </div>
-            </div>
-          )}
-
-          {screen === 'faq' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-foreground">
-                Вопросы и ответы
-              </h2>
-              <Accordion type="single" collapsible className="flex flex-col gap-2">
-                {faq.map((f, i) => (
-                  <AccordionItem
-                    key={i}
-                    value={`f${i}`}
-                    className="rounded-2xl bg-card border border-border px-4"
-                  >
-                    <AccordionTrigger className="text-left font-medium text-card-foreground">
-                      {f.q}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {f.a}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          )}
-
-          {screen === 'compose' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <h2 className="font-display text-3xl font-bold mt-3 text-foreground">
-                Подбор ухода
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Пройдите диагностику или соберите комплект вручную
-              </p>
-              <Button onClick={startDiagnostic} className="w-full h-14 rounded-full font-semibold">
-                <Icon name="Stethoscope" size={20} className="mr-2" />
-                Пройти тест
-              </Button>
-              <div className="flex flex-col gap-3 mt-4">
-                {products.map((p) => (
-                  <ProductRow key={p.id} p={p} onAdd={addToCart} onOpen={setOpenProduct} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {screen === 'club' && (
-            <div className="animate-fade-in pt-6">
-              <BackBtn onClick={() => setScreen('home')} />
-              <div className="mt-4 rounded-[2rem] bg-primary p-7 text-primary-foreground text-center">
-                <span className="text-5xl">👑</span>
-                <h2 className="font-display text-3xl font-bold mt-3">Клуб SEBO</h2>
-                <p className="text-sm opacity-90 mt-2">
-                  Скидки до 20%, ранний доступ к новинкам и персональные рекомендации трихолога.
-                </p>
-                <ul className="text-left text-sm mt-5 space-y-2">
-                  {['Промокод CLUB на 15% скидку', 'Бесплатная консультация', 'Подарки в заказах', 'Закрытые акции'].map(
-                    (t) => (
-                      <li key={t} className="flex items-center gap-2">
-                        <Icon name="Check" size={16} /> {t}
-                      </li>
-                    ),
-                  )}
-                </ul>
-              </div>
-              <Button className="w-full mt-4 h-14 rounded-full font-semibold">
-                Вступить в клуб
-              </Button>
-            </div>
-          )}
-        </main>
-      </div>
-
-      {/* Product details */}
-      <Sheet open={!!openProduct} onOpenChange={(o) => !o && setOpenProduct(null)}>
-        <SheetContent side="bottom" className="rounded-t-[2rem] max-w-md mx-auto max-h-[85vh] overflow-y-auto">
-          {openProduct && (
-            <div className="pb-4">
-              <div className="h-32 rounded-3xl bg-secondary grid place-items-center text-6xl mb-4">
-                {openProduct.emoji}
-              </div>
-              <p className="text-xs uppercase tracking-widest text-primary">
-                {openProduct.line}
-              </p>
-              <h3 className="font-display text-3xl font-bold text-foreground">
-                {openProduct.name}
-              </h3>
-              <p className="text-muted-foreground mt-2">{openProduct.description}</p>
-
-              <Section title="Разбор состава" icon="FlaskConical">
-                {openProduct.ingredients}
-              </Section>
-              <Section title="Как применять" icon="Info">
-                {openProduct.usage}
-              </Section>
-
-              <div className="flex items-center justify-between mt-5">
-                <span className="font-display text-3xl font-bold text-foreground">
-                  {openProduct.price} ₽
-                </span>
-                <Button
-                  onClick={() => {
-                    addToCart(openProduct.id);
-                    setOpenProduct(null);
-                  }}
-                  className="rounded-full h-12 px-6 font-semibold"
-                >
-                  В корзину
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
-    </div>
-  );
-};
-
-const BackBtn = ({ onClick }: { onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-1 text-sm font-medium text-muted-foreground"
-  >
-    <Icon name="ChevronLeft" size={18} /> На главную
-  </button>
-);
-
-const Section = ({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon: string;
-  children: React.ReactNode;
-}) => (
-  <div className="mt-4 rounded-2xl bg-secondary/50 p-4">
-    <p className="flex items-center gap-2 font-semibold text-foreground">
-      <Icon name={icon} size={16} className="text-primary" /> {title}
-    </p>
-    <p className="text-sm text-muted-foreground mt-1">{children}</p>
-  </div>
-);
-
-const ProductRow = ({
-  p,
-  onAdd,
-  onOpen,
-}: {
-  p: Product;
-  onAdd: (id: string) => void;
-  onOpen: (p: Product) => void;
-}) => (
-  <div className="flex items-center gap-3 rounded-3xl bg-card border border-border p-3">
-    <button
-      onClick={() => onOpen(p)}
-      className="h-16 w-16 shrink-0 rounded-2xl bg-secondary grid place-items-center text-3xl"
-    >
-      {p.emoji}
-    </button>
-    <button onClick={() => onOpen(p)} className="flex-1 text-left">
-      <p className="text-xs text-muted-foreground">{p.type}</p>
-      <p className="font-medium text-sm leading-tight text-card-foreground">{p.name}</p>
-      <p className="font-display text-lg font-bold text-foreground">{p.price} ₽</p>
-    </button>
-    <button
-      onClick={() => onAdd(p.id)}
-      className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground grid place-items-center active:scale-90 transition"
-    >
-      <Icon name="Plus" size={20} />
-    </button>
-  </div>
-);
-
-const CartSheet = ({
-  cart,
-  cartCount,
-  subtotal,
-  total,
-  promo,
-  setPromo,
-  applyPromo,
-  appliedPromo,
-  changeQty,
-}: {
-  cart: Record<string, number>;
-  cartCount: number;
-  subtotal: number;
-  total: number;
-  promo: string;
-  setPromo: (v: string) => void;
-  applyPromo: () => void;
-  appliedPromo: number;
-  changeQty: (id: string, d: number) => void;
-}) => {
-  const items = Object.entries(cart);
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="relative h-10 w-10 rounded-full bg-primary text-primary-foreground grid place-items-center">
-          <Icon name="ShoppingBag" size={20} />
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-accent text-accent-foreground text-xs font-bold grid place-items-center">
-              {cartCount}
-            </span>
-          )}
-        </button>
-      </SheetTrigger>
-      <SheetContent className="w-full max-w-md flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="font-display text-2xl">Корзина</SheetTitle>
-        </SheetHeader>
-        {items.length === 0 ? (
-          <div className="flex-1 grid place-items-center text-muted-foreground">
-            <div className="text-center">
-              <span className="text-5xl">🛍️</span>
-              <p className="mt-2">Корзина пуста</p>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3 mt-4">
-              {items.map(([id, qty]) => {
-                const p = products.find((x) => x.id === id)!;
-                return (
-                  <div
-                    key={id}
-                    className="flex items-center gap-3 rounded-2xl bg-secondary/40 p-3"
-                  >
-                    <span className="text-2xl">{p.emoji}</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium leading-tight">{p.name}</p>
-                      <p className="text-sm text-muted-foreground">{p.price} ₽</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => changeQty(id, -1)}
-                        className="h-7 w-7 rounded-full bg-card border border-border grid place-items-center"
-                      >
-                        <Icon name="Minus" size={14} />
-                      </button>
-                      <span className="w-5 text-center font-medium">{qty}</span>
-                      <button
-                        onClick={() => changeQty(id, 1)}
-                        className="h-7 w-7 rounded-full bg-card border border-border grid place-items-center"
-                      >
-                        <Icon name="Plus" size={14} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="border-t border-border pt-4 mt-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Промокод (SEBO10)"
-                  value={promo}
-                  onChange={(e) => setPromo(e.target.value)}
-                  className="rounded-full"
-                />
-                <Button onClick={applyPromo} variant="secondary" className="rounded-full">
-                  Применить
-                </Button>
-              </div>
-              {appliedPromo > 0 && (
-                <p className="text-sm text-accent mt-2 font-medium">
-                  Скидка {appliedPromo * 100}% применена ✓
-                </p>
-              )}
-              <div className="flex justify-between mt-4 text-sm text-muted-foreground">
-                <span>Сумма</span>
-                <span>{subtotal} ₽</span>
-              </div>
-              <div className="flex justify-between mt-1 items-end">
-                <span className="font-semibold">Итого</span>
-                <span className="font-display text-3xl font-bold text-primary">
-                  {total} ₽
-                </span>
-              </div>
-              <Button className="w-full mt-4 h-14 rounded-full font-semibold">
-                Оформить заказ
-              </Button>
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
-};
+        ))}
+      </div>
+    </section>
+
+    {/* ── CTA ── */}
+    <section className="mx-auto max-w-6xl px-6 pb-24">
+      <div className="rounded-[2.5rem] p-12 text-center text-white"
+           style={{ background: 'linear-gradient(135deg, #3f3740 0%, #6a8599 100%)' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#edc8c1' }}>
+          Начать сегодня
+        </p>
+        <h2 className="font-display text-5xl font-bold">
+          Ваша практика
+          <br />заслуживает лучшего
+        </h2>
+        <p className="mt-4 max-w-lg mx-auto text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)' }}>
+          Присоединяйтесь к 2 200 специалистам, которые уже ведут пациентов
+          профессиональнее с TrichoCare.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <Button className="rounded-full h-13 px-9 h-14 text-base font-semibold"
+                  style={{ background: '#edc8c1', color: '#3f3740' }}>
+            Попробовать бесплатно
+          </Button>
+          <Button variant="ghost"
+                  className="rounded-full h-14 px-8 text-base text-white border border-white/30 hover:bg-white/10">
+            Связаться с нами
+          </Button>
+        </div>
+      </div>
+    </section>
+
+    {/* ── Footer ── */}
+    <footer className="border-t border-border/60">
+      <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="h-7 w-7 rounded-lg grid place-items-center text-white"
+                style={{ background: '#3f3740' }}>
+            <Icon name="Activity" size={15} />
+          </span>
+          <span className="font-display text-base font-bold" style={{ color: '#3f3740' }}>TrichoCare</span>
+        </div>
+        <p>© 2026 TrichoCare · Для специалистов эстетической медицины</p>
+        <div className="flex gap-4">
+          <a href="#" className="hover:text-foreground transition-colors">Политика конфиденциальности</a>
+          <a href="#" className="hover:text-foreground transition-colors">Поддержка</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+);
 
 export default Index;
