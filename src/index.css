@@ -4,35 +4,36 @@
 
 @layer base {
   :root {
-    --background: 40 44% 95%;
-    --foreground: 28 25% 22%;
+    /* VELORA × Water's Edge: персик #c5a290 · слива #3f3740 · шалфей #808b6a · нюд #edc8c1 */
+    --background: 20 40% 97%;
+    --foreground: 290 10% 18%;
 
-    --card: 42 50% 98%;
-    --card-foreground: 28 25% 22%;
+    --card: 0 0% 100%;
+    --card-foreground: 290 10% 18%;
 
-    --popover: 42 50% 98%;
-    --popover-foreground: 28 25% 22%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 290 10% 18%;
 
-    --primary: 24 35% 42%;
-    --primary-foreground: 40 44% 97%;
+    --primary: 13 27% 67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 38% 88%;
-    --secondary-foreground: 28 30% 30%;
+    --secondary: 14 30% 93%;
+    --secondary-foreground: 290 10% 25%;
 
-    --muted: 38 30% 90%;
-    --muted-foreground: 28 14% 48%;
+    --muted: 20 20% 93%;
+    --muted-foreground: 290 6% 52%;
 
-    --accent: 145 22% 55%;
-    --accent-foreground: 40 44% 97%;
+    --accent: 290 8% 24%;
+    --accent-foreground: 20 40% 97%;
 
     --destructive: 0 70% 55%;
-    --destructive-foreground: 40 44% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 36 28% 84%;
-    --input: 36 28% 84%;
-    --ring: 24 35% 42%;
+    --border: 14 22% 89%;
+    --input: 14 22% 89%;
+    --ring: 13 27% 67%;
 
-    --radius: 1.25rem;
+    --radius: 1.5rem;
 
     --sidebar-background: 0 0% 98%;
 
